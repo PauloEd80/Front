@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fritsch — Gestão de Atendimentos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #f0f2f5;
+      --surface:   #ffffff;
+      --sidebar:   #1a2535;
+      --sidebar-s: #223044;
+      --border:    #e2e8f0;
+      --text:      #1e293b;
+      --muted:     #64748b;
+      --rec:       #3b82f6;
+      --rec-light: #eff6ff;
+      --novo:      #10b981;
+      --novo-light:#ecfdf5;
+      --danger:    #ef4444;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+      --radius:    10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ── */
+    aside {
+      width: 300px;
+      min-width: 300px;
+      background: var(--sidebar);
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+    }
+
+    .logo {
+      padding: 2rem 1.8rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .logo h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      color: #fff;
+      letter-spacing: 0.01em;
+    }
+
+    .logo p {
+      font-size: 0.72rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 4px;
+    }
+
+    .sidebar-section {
+      padding: 1.5rem 1.8rem;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .sidebar-section h2 {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #475569;
+      margin-bottom: 1rem;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .field { display: flex; flex-direction: column; gap: 4px; }
+
+    .field label {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .field input,
+    .field select {
+      background: var(--sidebar-s);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 7px;
+      padding: 0.65rem 0.85rem;
+      color: #e2e8f0;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+
+    .field input::placeholder { color: #475569; }
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--rec);
+      background: #28394f;
+    }
+
+    .field select option { background: #1a2535; }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0.75rem;
+      border-radius: 7px;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s, opacity .2s, box-shadow .2s;
+      margin-top: 0.4rem;
+    }
+
+    .btn:hover { opacity: 0.88; }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-green { background: var(--novo); color: #fff; }
+    .btn-blue  { background: var(--rec);  color: #fff; }
+
+    /* Pacientes list sidebar */
+    .patient-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .patient-chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--sidebar-s);
+      border-radius: 7px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      animation: fadeIn .25s ease;
+    }
+
+    .patient-chip span { color: #cbd5e1; }
+    .patient-chip .chip-remove {
+      background: none;
+      border: none;
+      color: #475569;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0;
+      line-height: 1;
+      transition: color .15s;
+    }
+    .patient-chip .chip-remove:hover { color: var(--danger); }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .top-bar h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--text);
+    }
+
+    .date-tag {
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+    }
+
+    /* Stats */
+    .stats-row {
+      display: flex;
+      gap: 14px;
+    }
+
+    .stat {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.3rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+    }
+
+    .stat-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.9rem;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .stat-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .stat-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width .5s ease;
+    }
+
+    /* Calendar */
+    .calendar-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .calendar-header {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cal-head-cell {
+      padding: 0.85rem 1rem;
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      border-right: 1px solid var(--border);
+    }
+
+    .cal-head-cell:last-child { border-right: none; }
+
+    .calendar-body {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      min-height: 380px;
+    }
+
+    .day-col {
+      padding: 0.75rem;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .day-col:last-child { border-right: none; }
+    .day-col.empty-hint::after {
+      content: 'Nenhuma consulta';
+      font-size: 0.72rem;
+      color: #cbd5e1;
+      text-align: center;
+      margin-top: 1rem;
+      display: block;
+    }
+
+    /* Cards de agendamento */
+    .appt-card {
+      border-radius: 8px;
+      padding: 10px 12px;
+      position: relative;
+      animation: slideUp .25s ease;
+    }
+
+    .appt-card.recorrente {
+      background: var(--rec-light);
+      border: 1px solid #bfdbfe;
+    }
+
+    .appt-card.novo {
+      background: var(--novo-light);
+      border: 1px solid #a7f3d0;
+    }
+
+    .appt-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .appt-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .appt-badge {
+      display: inline-block;
+      font-size: 0.62rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      padding: 2px 7px;
+      border-radius: 20px;
+      margin-top: 6px;
+    }
+
+    .badge-rec  { background: #dbeafe; color: #1d4ed8; }
+    .badge-novo { background: #d1fae5; color: #065f46; }
+
+    .appt-remove {
+      position: absolute;
+      top: 7px;
+      right: 8px;
+      background: none;
+      border: none;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 2px;
+      line-height: 1;
+      transition: color .15s;
+    }
+
+    .appt-remove:hover { color: var(--danger); }
+
+    /* Toast */
+    #toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9999;
+    }
+
+    .toast {
+      background: var(--text);
+      color: #fff;
+      padding: 0.85rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn .3s ease;
+      max-width: 320px;
+    }
+
+    .toast.success { background: var(--novo); }
+    .toast.error   { background: var(--danger); }
+    .toast.info    { background: var(--rec); }
+
+    .toast-icon { font-size: 1rem; flex-shrink: 0; }
+
+    /* Animations */
+    @keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastIn  { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(30px); } }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      gap: 8px;
+    }
+
+    .empty-state svg { opacity: .3; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      aside { width: 100%; min-width: unset; }
+      .calendar-header,
+      .calendar-body { grid-template-columns: 1fr; }
+      .cal-head-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .day-col { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside>
+  <div class="logo">
+    <h1>Fritsch</h1>
+    <p>Gestão de Atendimentos</p>
+  </div>
+
+  <!-- Cadastro -->
+  <div class="sidebar-section">
+    <h2>Novo Paciente</h2>
+    <div class="form-group">
+      <div class="field">
+        <label>Nome completo</label>
+        <input type="text" id="nome" placeholder="Ex: Ana Souza" />
+      </div>
+      <div class="field">
+        <label>Idade</label>
+        <input type="number" id="idade" placeholder="Ex: 34" min="1" max="120" />
+      </div>
+      <div class="field">
+        <label>Telefone</label>
+        <input type="tel" id="telefone" placeholder="(00) 00000-0000" />
+      </div>
+      <div class="field">
+        <label>Setor</label>
+        <input type="text" id="setor" placeholder="Ex: RH, TI, Financeiro..." />
+      </div>
+      <button class="btn btn-green" onclick="cadastrarPaciente()">
+        <span>＋</span> Salvar Paciente
+      </button>
+    </div>
+  </div>
+
+  <!-- Lista de pacientes cadastrados -->
+  <div class="sidebar-section">
+    <h2>Pacientes cadastrados</h2>
+    <div class="patient-list" id="listaPacientes">
+      <span style="font-size:.78rem; color:#475569;">Nenhum paciente ainda.</span>
+    </div>
+  </div>
+
+  <!-- Agendamento -->
+  <div class="sidebar-section">
+    <h2>Agendar Consulta</h2>
+    <div class="form-group">
+      <div class="field">
+        <label>Paciente</label>
+        <select id="selectPaciente"><option value="">— selecione —</option></select>
+      </div>
+      <div class="field">
+        <label>Dia da semana</label>
+        <select id="selectDia">
+          <option value="seg">Segunda-feira</option>
+          <option value="ter">Terça-feira</option>
+          <option value="qua">Quarta-feira</option>
+          <option value="qui">Quinta-feira</option>
+          <option value="sex">Sexta-feira</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Horário</label>
+        <select id="selectHora">
+          <option>08:00</option><option>09:00</option><option>10:00</option>
+          <option>11:00</option><option>13:00</option><option>14:00</option>
+          <option>15:00</option><option>16:00</option><option>17:00</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tipo de atendimento</label>
+        <select id="selectTipo">
+          <option value="recorrente">Recorrente (2 vagas/sem)</option>
+          <option value="novo">Novo Paciente (1 vaga/sem)</option>
+        </select>
+      </div>
+      <button class="btn btn-blue" onclick="agendarConsulta()">
+        <span>◷</span> Confirmar Agendamento
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main>
+  <div class="top-bar">
+    <h2>Agenda Semanal</h2>
+    <span class="date-tag" id="weekLabel"></span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat">
+      <span class="stat-label">Total Semanal</span>
+      <span class="stat-value" id="statTotal">0<small style="font-size:.9rem;font-family:'DM Sans';color:#94a3b8;">/3</small></span>
+      <div class="stat-bar"><div class="stat-fill" id="fillTotal" style="background:#1e293b; width:0%"></div></div>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Recorrentes</span>
+      <span class="stat-value" id="statRec">0<small style="font-size:.9rem;font-family:'DM Sans';color:#94a3b8;">/2</small></span>
+      <div class="stat-bar"><div class="stat-fill" id="fillRec" style="background:var(--rec); width:0%"></div></div>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Novos Pacientes</span>
+      <span class="stat-value" id="statNovo">0<small style="font-size:.9rem;font-family:'DM Sans';color:#94a3b8;">/1</small></span>
+      <div class="stat-bar"><div class="stat-fill" id="fillNovo" style="background:var(--novo); width:0%"></div></div>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Vagas Disponíveis</span>
+      <span class="stat-value" id="statDisp">3</span>
+      <div class="stat-bar"><div class="stat-fill" id="fillDisp" style="background:#f59e0b; width:100%"></div></div>
+    </div>
+  </div>
+
+  <!-- Calendário -->
+  <div class="calendar-wrap">
+    <div class="calendar-header">
+      <div class="cal-head-cell">Segunda</div>
+      <div class="cal-head-cell">Terça</div>
+      <div class="cal-head-cell">Quarta</div>
+      <div class="cal-head-cell">Quinta</div>
+      <div class="cal-head-cell">Sexta</div>
+    </div>
+    <div class="calendar-body">
+      <div class="day-col" id="col-seg"></div>
+      <div class="day-col" id="col-ter"></div>
+      <div class="day-col" id="col-qua"></div>
+      <div class="day-col" id="col-qui"></div>
+      <div class="day-col" id="col-sex"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+  // ── Estado ──
+  let pacientes = JSON.parse(localStorage.getItem('psico_pac')) || [];
+  let agenda    = JSON.parse(localStorage.getItem('psico_ag'))  || [];
+
+  const persist = () => {
+    localStorage.setItem('psico_pac', JSON.stringify(pacientes));
+    localStorage.setItem('psico_ag',  JSON.stringify(agenda));
+    render();
+  };
+
+  // ── Toast ──
+  function toast(msg, type = 'info') {
+    const icons = { success: '✓', error: '✕', info: 'ℹ' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => {
+      el.style.animation = 'toastOut .3s ease forwards';
+      setTimeout(() => el.remove(), 300);
+    }, 3200);
+  }
+
+  // ── Cadastro ──
+  function cadastrarPaciente() {
+    const nome     = document.getElementById('nome').value.trim();
+    const idade    = document.getElementById('idade').value;
+    const telefone = document.getElementById('telefone').value.trim();
+    const setor    = document.getElementById('setor').value.trim();
+
+    if (!nome)  return toast('Nome é obrigatório.', 'error');
+    if (!setor) return toast('Setor é obrigatório.', 'error');
+
+    pacientes.push({ id: Date.now(), nome, idade, telefone, setor });
+    ['nome','idade','telefone','setor'].forEach(id => document.getElementById(id).value = '');
+    persist();
+    toast(`${nome} cadastrado(a) com sucesso!`, 'success');
+  }
+
+  // ── Agendamento ──
+  function agendarConsulta() {
+    const pacienteId = document.getElementById('selectPaciente').value;
+    const dia        = document.getElementById('selectDia').value;
+    const hora       = document.getElementById('selectHora').value;
+    const tipo       = document.getElementById('selectTipo').value;
+
+    if (!pacienteId) return toast('Selecione um paciente.', 'error');
+
+    const totalRec  = agenda.filter(a => a.tipo === 'recorrente').length;
+    const totalNovo = agenda.filter(a => a.tipo === 'novo').length;
+    const total     = agenda.length;
+
+    if (total >= 3)                              return toast('Limite de 3 atendimentos semanais atingido.', 'error');
+    if (tipo === 'recorrente' && totalRec >= 2)  return toast('As 2 vagas para recorrentes já estão preenchidas.', 'error');
+    if (tipo === 'novo' && totalNovo >= 1)       return toast('A vaga para novo paciente já está preenchida.', 'error');
+
+    // Verifica conflito de horário no mesmo dia
+    const conflito = agenda.find(a => a.dia === dia && a.hora === hora);
+    if (conflito) return toast(`Já existe uma consulta às ${hora} neste dia.`, 'error');
+
+    const paciente = pacientes.find(p => p.id == pacienteId);
+    agenda.push({ id: Date.now(), pacienteNome: paciente.nome, setor: paciente.setor, dia, hora, tipo });
+    persist();
+    toast(`Consulta de ${paciente.nome} agendada para ${hora}.`, 'success');
+  }
+
+  // ── Remover ──
+  function removerAgendamento(id) {
+    agenda = agenda.filter(a => a.id !== id);
+    persist();
+    toast('Agendamento cancelado.', 'info');
+  }
+
+  function removerPaciente(id) {
+    pacientes = pacientes.filter(p => p.id !== id);
+    agenda    = agenda.filter(a => {
+      const pac = pacientes.find(p => p.id == a.pacienteId);
+      return true; // mantém agenda existente, só remove da lista
+    });
+    persist();
+    toast('Paciente removido.', 'info');
+  }
+
+  // ── Semana atual ──
+  function getWeekLabel() {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const seg = new Date(now.setDate(diff));
+    const sex = new Date(seg); sex.setDate(seg.getDate() + 4);
+    const fmt = d => d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
+    return `${fmt(seg)} — ${fmt(sex)}`;
+  }
+
+  // ── Render ──
+  function render() {
+    // Week label
+    document.getElementById('weekLabel').textContent = getWeekLabel();
+
+    // Select de pacientes
+    const sel = document.getElementById('selectPaciente');
+    const cur = sel.value;
+    sel.innerHTML = pacientes.length
+      ? pacientes.map(p => `<option value="${p.id}" ${p.id == cur ? 'selected' : ''}>${p.nome}</option>`).join('')
+      : '<option value="">— sem pacientes —</option>';
+
+    // Lista sidebar
+    const lista = document.getElementById('listaPacientes');
+    lista.innerHTML = pacientes.length
+      ? pacientes.map(p => `
+          <div class="patient-chip">
+            <span>${p.nome} <span style="color:#475569;font-size:.7rem;">· ${p.setor}</span></span>
+            <button class="chip-remove" onclick="removerPaciente(${p.id})" title="Remover">✕</button>
+          </div>`).join('')
+      : '<span style="font-size:.78rem; color:#475569;">Nenhum paciente ainda.</span>';
+
+    // Stats
+    const rec  = agenda.filter(a => a.tipo === 'recorrente').length;
+    const novo = agenda.filter(a => a.tipo === 'novo').length;
+    const tot  = agenda.length;
+    const disp = 3 - tot;
+
+    document.getElementById('statTotal').innerHTML = `${tot}<small style="font-size:.9rem;font-family:'DM Sans';color:#94a3b8;">/3</small>`;
+    document.getElementById('statRec').innerHTML   = `${rec}<small style="font-size:.9rem;font-family:'DM Sans';color:#94a3b8;">/2</small>`;
+    document.getElementById('statNovo').innerHTML  = `${novo}<small style="font-size:.9rem;font-family:'DM Sans';color:#94a3b8;">/1</small>`;
+    document.getElementById('statDisp').textContent = disp;
+
+    document.getElementById('fillTotal').style.width = `${(tot/3)*100}%`;
+    document.getElementById('fillRec').style.width   = `${(rec/2)*100}%`;
+    document.getElementById('fillNovo').style.width  = `${(novo/1)*100}%`;
+    document.getElementById('fillDisp').style.width  = `${(disp/3)*100}%`;
+
+    // Calendário — limpa
+    ['seg','ter','qua','qui','sex'].forEach(d => {
+      document.getElementById(`col-${d}`).innerHTML = '';
+    });
+
+    // Ordena por horário
+    const sorted = [...agenda].sort((a,b) => a.hora > b.hora ? 1 : -1);
+
+    sorted.forEach(item => {
+      const col = document.getElementById(`col-${item.dia}`);
+      const card = document.createElement('div');
+      card.className = `appt-card ${item.tipo}`;
+      card.innerHTML = `
+        <button class="appt-remove" onclick="removerAgendamento(${item.id})" title="Cancelar">✕</button>
+        <div class="appt-name">${item.pacienteNome}</div>
+        <div class="appt-meta">${item.hora} · ${item.setor}</div>
+        <span class="appt-badge ${item.tipo === 'novo' ? 'badge-novo' : 'badge-rec'}">
+          ${item.tipo === 'novo' ? 'Novo' : 'Recorrente'}
+        </span>`;
+      col.appendChild(card);
+    });
+
+    // Hint de coluna vazia
+    ['seg','ter','qua','qui','sex'].forEach(d => {
+      const col = document.getElementById(`col-${d}`);
+      if (!col.children.length) col.classList.add('empty-hint');
+      else col.classList.remove('empty-hint');
+    });
+  }
+
+  render();
+</script>
+</body>
+</html>
