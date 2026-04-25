@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fritsch — Gestão de Atendimentos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ════════════════════════════
+     SIDEBAR
+════════════════════════════ -->
+<aside>
+
+  <div class="logo">
+    <h1>Fritsch</h1>
+    <p>Gestão de Atendimentos</p>
+  </div>
+
+  <!-- Cadastro -->
+  <div class="sidebar-section">
+    <h2>Novo Paciente</h2>
+    <div class="form-group">
+      <div class="field">
+        <label>Nome completo</label>
+        <input type="text" id="nome" placeholder="Ex: Ana Souza" />
+      </div>
+      <div class="field">
+        <label>Idade</label>
+        <input type="number" id="idade" placeholder="Ex: 34" min="1" max="120" />
+      </div>
+      <div class="field">
+        <label>Telefone</label>
+        <input type="tel" id="telefone" placeholder="(00) 00000-0000" />
+      </div>
+      <div class="field">
+        <label>Setor</label>
+        <input type="text" id="setor" placeholder="Ex: RH, TI, Financeiro..." />
+      </div>
+      <button class="btn btn-green" onclick="cadastrarPaciente()">
+        ＋ Salvar Paciente
+      </button>
+    </div>
+  </div>
+
+  <!-- Lista de pacientes -->
+  <div class="sidebar-section">
+    <h2>Pacientes cadastrados</h2>
+    <div class="patient-list" id="listaPacientes">
+      <span class="empty-msg">Nenhum paciente ainda.</span>
+    </div>
+  </div>
+
+  <!-- Agendamento -->
+  <div class="sidebar-section">
+    <h2>Agendar Consulta</h2>
+    <div class="form-group">
+      <div class="field">
+        <label>Paciente</label>
+        <select id="selectPaciente">
+          <option value="">— selecione —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Dia da semana</label>
+        <select id="selectDia">
+          <option value="seg">Segunda-feira</option>
+          <option value="ter">Terça-feira</option>
+          <option value="qua">Quarta-feira</option>
+          <option value="qui">Quinta-feira</option>
+          <option value="sex">Sexta-feira</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Horário</label>
+        <select id="selectHora">
+          <option>08:00</option>
+          <option>09:00</option>
+          <option>10:00</option>
+          <option>11:00</option>
+          <option>13:00</option>
+          <option>14:00</option>
+          <option>15:00</option>
+          <option>16:00</option>
+          <option>17:00</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tipo de atendimento</label>
+        <select id="selectTipo">
+          <option value="recorrente">Recorrente (2 vagas/sem)</option>
+          <option value="novo">Novo Paciente (1 vaga/sem)</option>
+        </select>
+      </div>
+      <button class="btn btn-blue" onclick="agendarConsulta()">
+        ◷ Confirmar Agendamento
+      </button>
+    </div>
+  </div>
+
+</aside>
+
+<!-- ════════════════════════════
+     MAIN
+════════════════════════════ -->
+<main>
+
+  <div class="top-bar">
+    <h2>Agenda Semanal</h2>
+    <span class="date-tag" id="weekLabel"></span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat">
+      <span class="stat-label">Total Semanal</span>
+      <span class="stat-value" id="statTotal">0<small>/3</small></span>
+      <div class="stat-bar">
+        <div class="stat-fill" id="fillTotal" style="background:#1e293b; width:0%"></div>
+      </div>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Recorrentes</span>
+      <span class="stat-value" id="statRec">0<small>/2</small></span>
+      <div class="stat-bar">
+        <div class="stat-fill" id="fillRec" style="background:var(--rec); width:0%"></div>
+      </div>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Novos Pacientes</span>
+      <span class="stat-value" id="statNovo">0<small>/1</small></span>
+      <div class="stat-bar">
+        <div class="stat-fill" id="fillNovo" style="background:var(--novo); width:0%"></div>
+      </div>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Vagas Disponíveis</span>
+      <span class="stat-value" id="statDisp">3</span>
+      <div class="stat-bar">
+        <div class="stat-fill" id="fillDisp" style="background:var(--warning); width:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendário -->
+  <div class="calendar-wrap">
+    <div class="calendar-header">
+      <div class="cal-head-cell" id="head-seg">Segunda</div>
+      <div class="cal-head-cell" id="head-ter">Terça</div>
+      <div class="cal-head-cell" id="head-qua">Quarta</div>
+      <div class="cal-head-cell" id="head-qui">Quinta</div>
+      <div class="cal-head-cell" id="head-sex">Sexta</div>
+    </div>
+    <div class="calendar-body">
+      <div class="day-col" id="col-seg"></div>
+      <div class="day-col" id="col-ter"></div>
+      <div class="day-col" id="col-qua"></div>
+      <div class="day-col" id="col-qui"></div>
+      <div class="day-col" id="col-sex"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
