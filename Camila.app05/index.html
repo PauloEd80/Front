@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fritsch — Gestão de Atendimentos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ════════════════════════════
+     SIDEBAR
+════════════════════════════ -->
+<aside>
+  <div class="logo">
+    <h1>Fritsch</h1>
+    <span class="logo-sub">Gestão de Atendimentos</span>
+  </div>
+
+  <!-- Wrapper responsivo das seções da sidebar -->
+  <div class="sidebar-inner">
+
+    <div class="sidebar-section">
+      <span class="section-label">Novo Paciente</span>
+      <div class="form-group">
+        <div class="field">
+          <label for="nome">Nome completo</label>
+          <input type="text" id="nome" placeholder="Ex: Ana Souza" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="idade">Idade</label>
+          <input type="number" id="idade" placeholder="Ex: 34" min="1" max="120" />
+        </div>
+        <div class="field">
+          <label for="telefone">Telefone</label>
+          <input type="tel" id="telefone" placeholder="(00) 00000-0000" />
+        </div>
+        <div class="field">
+          <label for="setor">Setor</label>
+          <input type="text" id="setor" placeholder="Ex: RH, TI, Financeiro…" autocomplete="off" />
+        </div>
+        <button class="btn btn-teal" onclick="cadastrarPaciente()">＋ Salvar Paciente</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="section-label">Pacientes Cadastrados</span>
+      <!-- Legenda do termômetro -->
+      <div class="thermo-legend">
+        <span class="thermo-item">
+          <span class="thermo-dot" style="background:hsl(120,60%,42%)"></span>Recente
+        </span>
+        <span class="thermo-item">
+          <span class="thermo-dot" style="background:hsl(48,90%,45%)"></span>15 dias
+        </span>
+        <span class="thermo-item">
+          <span class="thermo-dot" style="background:hsl(0,70%,50%)"></span>30+ dias
+        </span>
+      </div>
+      <div class="patient-list" id="listaPacientes">
+        <span class="empty-msg">Nenhum paciente ainda.</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="section-label">Agendar Consulta</span>
+      <div class="form-group">
+        <div class="field">
+          <label for="selectPaciente">Paciente</label>
+          <select id="selectPaciente"><option value="">— selecione —</option></select>
+        </div>
+        <div class="field">
+          <label for="selectDia">Dia da semana</label>
+          <select id="selectDia">
+            <option value="seg">Segunda-feira</option>
+            <option value="ter">Terça-feira</option>
+            <option value="qua">Quarta-feira</option>
+            <option value="qui">Quinta-feira</option>
+            <option value="sex">Sexta-feira</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="selectHora">Horário</label>
+          <select id="selectHora">
+            <option>08:00</option><option>09:00</option><option>10:00</option>
+            <option>11:00</option><option>13:00</option><option>14:00</option>
+            <option>15:00</option><option>16:00</option><option>17:00</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="selectTipo">Tipo de atendimento</label>
+          <select id="selectTipo">
+            <option value="recorrente">Recorrente (2 vagas/sem)</option>
+            <option value="novo">Novo Paciente (1 vaga/sem)</option>
+          </select>
+        </div>
+        <button class="btn btn-amber" onclick="agendarConsulta()">◷ Confirmar Agendamento</button>
+      </div>
+    </div>
+
+  </div><!-- /sidebar-inner -->
+</aside>
+
+<!-- ════════════════════════════
+     MAIN
+════════════════════════════ -->
+<main>
+
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h2>Agenda Semanal</h2>
+      <p id="weekSubtitle">Selecione uma semana no calendário abaixo</p>
+    </div>
+    <div class="top-bar-right">
+      <div class="date-pill">
+        <span class="date-dot"></span>
+        <span id="weekLabel">—</span>
+      </div>
+      <button class="btn-full-cal" onclick="abrirCalendarioCompleto()" title="Ver calendário completo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8"  y1="2" x2="8"  y2="6"/>
+          <line x1="3"  y1="10" x2="21" y2="10"/>
+        </svg>
+        Ver Calendário
+      </button>
+    </div>
+  </div>
+
+  <!-- Mini calendário mensal -->
+  <div class="month-picker">
+    <div class="month-nav">
+      <button class="month-nav-btn" onclick="mudarMes(-1)">&#8249;</button>
+      <span class="month-title" id="monthTitle">—</span>
+      <button class="month-nav-btn" onclick="mudarMes(1)">&#8250;</button>
+    </div>
+    <div class="month-grid">
+      <div class="month-grid-header">
+        <span>Seg</span><span>Ter</span><span>Qua</span>
+        <span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+        <span></span>
+      </div>
+      <div id="monthBody"></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat s-total">
+      <span class="stat-label">Total Semanal</span>
+      <span class="stat-value" id="statTotal">0<small>/3</small></span>
+      <div class="stat-bar"><div class="stat-fill" id="fillTotal" style="background:var(--ink);width:0%"></div></div>
+    </div>
+    <div class="stat s-rec">
+      <span class="stat-label">Recorrentes</span>
+      <span class="stat-value" id="statRec">0<small>/2</small></span>
+      <div class="stat-bar"><div class="stat-fill" id="fillRec" style="background:var(--teal);width:0%"></div></div>
+    </div>
+    <div class="stat s-novo">
+      <span class="stat-label">Novos Pacientes</span>
+      <span class="stat-value" id="statNovo">0<small>/1</small></span>
+      <div class="stat-bar"><div class="stat-fill" id="fillNovo" style="background:var(--amber);width:0%"></div></div>
+    </div>
+    <div class="stat s-disp">
+      <span class="stat-label">Vagas Disponíveis</span>
+      <span class="stat-value" id="statDisp">3</span>
+      <div class="stat-bar"><div class="stat-fill" id="fillDisp" style="background:var(--ink-ghost);width:100%"></div></div>
+    </div>
+  </div>
+
+  <!-- Grade semanal -->
+  <div class="calendar-wrap">
+    <div class="calendar-header">
+      <div class="cal-head-cell" id="head-seg">Segunda</div>
+      <div class="cal-head-cell" id="head-ter">Terça</div>
+      <div class="cal-head-cell" id="head-qua">Quarta</div>
+      <div class="cal-head-cell" id="head-qui">Quinta</div>
+      <div class="cal-head-cell" id="head-sex">Sexta</div>
+    </div>
+    <div class="calendar-body">
+      <div class="day-col" id="col-seg"></div>
+      <div class="day-col" id="col-ter"></div>
+      <div class="day-col" id="col-qua"></div>
+      <div class="day-col" id="col-qui"></div>
+      <div class="day-col" id="col-sex"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ════════════════════════════
+     OVERLAY: CALENDÁRIO COMPLETO
+════════════════════════════ -->
+<div class="fullcal-overlay" id="fullcalOverlay" onclick="fecharSeBackground(event)">
+  <div class="fullcal-modal">
+    <div class="fullcal-header">
+      <button class="month-nav-btn" onclick="mudarMesFull(-1)">&#8249;</button>
+      <span class="month-title" id="fullCalTitle">—</span>
+      <button class="month-nav-btn" onclick="mudarMesFull(1)">&#8250;</button>
+      <button class="fullcal-close" onclick="fecharCalendarioCompleto()">✕</button>
+    </div>
+    <div class="fullcal-day-headers">
+      <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span>
+      <span>Sex</span><span>Sáb</span><span>Dom</span>
+    </div>
+    <div class="fullcal-body" id="fullCalBody"></div>
+  </div>
+</div>
+
+<!-- Tooltip flutuante -->
+<div class="appt-tooltip" id="apptTooltip"></div>
+
+<div id="toast-container"></div>
+<script src="app.js"></script>
+</body>
+</html>
